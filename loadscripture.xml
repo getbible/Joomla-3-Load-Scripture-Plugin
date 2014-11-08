@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="2.5" type="plugin" group="content" method="upgrade">
+	<name>Content - Load Scripture</name>
+	<author>Llewellyn van der Merwe</author>
+	<creationDate>July 2013</creationDate>
+	<copyright>Copyright (C) 2005 - 2014.</copyright>
+	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+	<authorEmail>llewellyn@vdm.io</authorEmail>
+	<authorUrl>www.vdm.io</authorUrl>
+	<version>1.0.0</version>
+	<description><![CDATA[
+		<h1>Load Scripture Content Plugin for getBible (v.1.0.0)</h1>
+		<div style="clear: both;"></div>
+		<p>Adding Scripture to your joomla content has never been so easy!</p>
+		<p><strong>Built for Joomla 3.2.x</strong></p>
+		<p>Created by Llewellyn van de Merwe | <a href="http://www.vdm.io/joomla" target="_blank">www.vdm.io</a>
+	]]></description>
+	<scriptfile>script.php</scriptfile>
+	<files>
+		<filename plugin="loadscripture">loadscripture.php</filename>
+		<filename>index.html</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">en-GB.plg_content_loadscripture.ini</language>
+		<language tag="en-GB">en-GB.plg_content_loadscripture.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+
+			<fieldset name="basic">
+				<field name="callClass" type="text" default="getBible" label="PLG_LOADSCRIPTURE_CALL_CLASS_LABEL" description="PLG_LOADSCRIPTURE_CALL_CLASS_DESC" filter="WORD" />
+				
+				<field
+					name="diplayOption"
+					type="list"
+					default="1"
+					label="PLG_LOADSCRIPTURE_DISPLAY_MODE_LABEL"
+					description="PLG_LOADSCRIPTURE_DISPLAY_MODE_DESC">
+					<option
+						value="1">PLG_LOADSCRIPTURE_TOOLTIP</option>
+					<option
+						value="2">PLG_LOADSCRIPTURE_OFF_CANVAS</option>
+					<option
+						value="3">PLG_LOADSCRIPTURE_POPUP</option>
+					<option
+						value="4">PLG_LOADSCRIPTURE_INLINE</option>
+				</field>
+				
+			</fieldset>
+
+		</fields>
+	</config>
+</extension>

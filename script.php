@@ -71,7 +71,7 @@ class plgcontentloadscriptureInstallerScript
 		
 		if (!file_exists(JPATH_ROOT.DS.'components'.DS.'com_getbible'.DS.'helpers'.DS.'script_checker.php')) {
 			$this->network = true;
-			$app->enqueueMessage('Please note that you will need to setup your network url in the plugin settings, or install the <a href="https://getbible.net/downloads" target="_blank">GetBible component</a> before continuing.', 'error');
+			$app->enqueueMessage('Please note that you will need to setup your network url in the plugin settings, or install the <a href="https://getbible.net/downloads" target="_blank">GetBible component</a> before continuing.', 'Message');
 		}
 		
 		$jversion = new JVersion();

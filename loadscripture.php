@@ -18,9 +18,6 @@ if(!defined('DS')){
 	define('DS',DIRECTORY_SEPARATOR);
 };
 
-// load the helper function from component
-require_once( JPATH_ROOT.DS.'components'.DS.'com_getbible'.DS.'helpers'.DS.'script_checker.php' );
-
 class PlgContentLoadscripture extends JPlugin
 {
 	protected $component;
@@ -114,7 +111,12 @@ class PlgContentLoadscripture extends JPlugin
 			$this->diplayOption = $this->params->get('diplayOption');
 		}
 		if(!$version){
-			$version 	= $this->com_params->get('defaultStartVersion');
+			if( $this->params->get('method') == 1){
+				$version 	= 'kjv';
+			} else {
+				$version 	= $this->com_params->get('defaultStartVersion');
+			}
+			
 			$scripture 	= current(explode('[', $scripture));
 		} else {
 			$scripture 	= current(explode('(', $scripture));
@@ -179,13 +181,25 @@ class PlgContentLoadscripture extends JPlugin
 	{
 		// get the document
 		$this->document		= &JFactory::getDocument();
-		// set the getBible component defaults
-        $this->component	= &JComponentHelper::getComponent('com_getbible');
 		// set the getBible component params
-        $this->com_params	= &JComponentHelper::getParams('com_getbible');
+		if( $this->params->get('method') == 1){
+			$this->com_params = false;
+		} else {
+			$this->com_params = &JComponentHelper::getParams('com_getbible');
+		}
 		// make sure all scripts are loaded
-		if (!HeaderCheck::css_loaded('uikit')) {
-			$this->document->addStyleSheet(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'css'.DS.'uikit.min.css');
+		if (!$this->css_loaded('uikit')) {
+			if( $this->params->get('method') == 1){
+				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/css/uikit.min.css');
+			} else {
+				if ($this->com_params->get('jsonQueryOptions') == 1){
+					$this->document->addStyleSheet(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'css'.DS.'uikit.min.css');
+				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+					$this->document->addScript('https://getbible.net/media/com_getbible/css/uikit.min.css');
+				} else {
+					$this->document->addScript('http://getbible.net/media/com_getbible/css/uikit.min.css');
+				}
+			}
 		}
 		// add css to page
 		$css = "
@@ -204,29 +218,52 @@ class PlgContentLoadscripture extends JPlugin
 		$this->document->addStyleDeclaration($css);
 		
 		// add script to page
-		if (!HeaderCheck::js_loaded('jquery')) {	
+		if (!$this->js_loaded('jquery')) {	
 			JHtml::_('jquery.framework');
 		}
-		if (!HeaderCheck::js_loaded('uikit')) {
-			$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'uikit.min.js');
+		if (!$this->js_loaded('uikit')) {
+			if( $this->params->get('method') == 1){
+				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/uikit.min.js');
+			} else {
+				if ($this->com_params->get('jsonQueryOptions') == 1){
+					$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'uikit.min.js');
+				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+					$this->document->addScript('https://getbible.net/media/com_getbible/js/uikit.min.js');
+				} else {
+					$this->document->addScript('http://getbible.net/media/com_getbible/js/uikit.min.js');
+				}
+			}
 		}
 		// load the correct url
-		if ($this->com_params->get('jsonQueryOptions') == 1){
-			$this->action = 'index.php?option=com_getbible&view=json';
-		} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
-			$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json';
+		if( $this->params->get('method') == 1){
+			$this->action = $this->params->get('network_url').'/index.php?option=com_getbible&view=json';
 		} else {
-			$this->action = 'http://getbible.net/index.php?option=com_getbible&view=json';
+			if ($this->com_params->get('jsonQueryOptions') == 1){
+				$this->action = 'index.php?option=com_getbible&view=json';
+			} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+				$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json';
+			} else {
+				$this->action = 'http://getbible.net/index.php?option=com_getbible&view=json';
+			}
 		}
 		$script = "";
-		if($this->com_params->get('jsonAPIaccess')){
-			$key	= JSession::getFormToken();
-			$script .= "var appKey = '".$key."';"; 
+		if( $this->params->get('method') == 1){
+			if(strlen($this->params->get('network_key')) > 0){
+				$script .= "var key = '".$this->params->get('network_key')."';"; 
+			}
+		} else {
+			if($this->com_params->get('jsonAPIaccess')){
+				$key	= JSession::getFormToken();
+				$script .= "var appKey = '".$key."';"; 
+			}
 		}
+		
 		$script .= "
 		function loadscripture(request,addTo,diplayOption,version) {
 			if (typeof appKey !== 'undefined') {
 				request = request+'&appKey='+appKey;
+			}else if (typeof key !== 'undefined') {
+				request = request+'&key='+key;
 			}
 			jQuery.ajax({
 			 url:'".$this->action."',
@@ -296,7 +333,7 @@ class PlgContentLoadscripture extends JPlugin
 						}
 					});
 					if(diplayOption == 'diplay_4') {
-						output += '</span> <small class=\"ltr uk-text-muted\"> (Taken From '+version+')</small>';
+						output += '</span> <small class=\"ltr uk-text-muted\"> (Taken From '+version+')</small>&#160;';
 					} else {
 						output += '<small class=\"uk-text-right\"> (Taken From '+version+')</small></p>';
 					}
@@ -359,5 +396,52 @@ class PlgContentLoadscripture extends JPlugin
 		";
 		$this->document->addScriptDeclaration($script); 
 		
+	}
+	
+	protected function js_loaded($script_name)
+	{
+		// UIkit check point
+		if($script_name == 'uikit'){
+			$app            	= JFactory::getApplication();
+			$getTemplateName  	= $app->getTemplate('template')->template;
+			
+			if (strpos($getTemplateName,'yoo') !== false) {
+				return true;
+			}
+		}
+		
+		$document 	=& JFactory::getDocument();
+		$head_data 	= $document->getHeadData();
+		foreach (array_keys($head_data['scripts']) as $script) {
+			if (stristr($script, $script_name)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	
+	protected function css_loaded($script_name)
+	{
+		// UIkit check point
+		if($script_name == 'uikit'){
+			$app            	= JFactory::getApplication();
+			$getTemplateName  	= $app->getTemplate('template')->template;
+			
+			if (strpos($getTemplateName,'yoo') !== false) {
+				return true;
+			}
+		}
+		
+		$document 	=& JFactory::getDocument();
+		$head_data 	= $document->getHeadData();
+		
+		foreach (array_keys($head_data['styleSheets']) as $script) {
+			if (stristr($script, $script_name)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

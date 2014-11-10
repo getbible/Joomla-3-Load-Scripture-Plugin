@@ -12,7 +12,7 @@
 		<h1>Load Scripture Content Plugin for getBible (v.1.0.0)</h1>
 		<div style="clear: both;"></div>
 		<p>Adding Scripture to your joomla content has never been so easy!</p>
-		<p><strong>Built for Joomla 3.2.x</strong></p>
+		<p><a href="https://getbible.net/load-scriptures" target="_blank"><strong>Documentation</strong></a></p>
 		<p>Created by Llewellyn van de Merwe | <a href="http://www.vdm.io/joomla" target="_blank">www.vdm.io</a>
 	]]></description>
 	<scriptfile>script.php</scriptfile>
@@ -29,7 +29,6 @@
 
 			<fieldset name="basic">
 				<field name="callClass" type="text" default="getBible" label="PLG_LOADSCRIPTURE_CALL_CLASS_LABEL" description="PLG_LOADSCRIPTURE_CALL_CLASS_DESC" filter="WORD" />
-				
 				<field
 					name="diplayOption"
 					type="list"
@@ -45,6 +44,20 @@
 					<option
 						value="4">PLG_LOADSCRIPTURE_INLINE</option>
 				</field>
+				
+				<field
+					name="method"
+					type="list"
+					default="0"
+					label="PLG_LOADSCRIPTURE_METHOD_LABEL"
+					description="PLG_LOADSCRIPTURE_METHOD_MODE_DESC">
+					<option
+						value="0">PLG_LOADSCRIPTURE_LOCAL_METHOD</option>
+					<option
+						value="1">PLG_LOADSCRIPTURE_NETWORK_METHOD</option>
+				</field>
+				<field name="network_url" type="url" default="http://www.example.com" label="PLG_LOADSCRIPTURE_NETWORK_URL_LABEL" description="PLG_LOADSCRIPTURE_NETWORK_URL_DESC" size="40" />
+				<field name="network_key" type="text" default="" label="PLG_LOADSCRIPTURE_NETWORK_KEY_LABEL" description="PLG_LOADSCRIPTURE_NETWORK_KEY_DESC" size="40" />
 				
 			</fieldset>
 

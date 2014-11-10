@@ -22,6 +22,7 @@ if(!defined('DS')){
  */
 class plgcontentloadscriptureInstallerScript
 {
+	protected $network = false;
 	/**
 	 * method to install the component
 	 *
@@ -69,8 +70,8 @@ class plgcontentloadscriptureInstallerScript
 		$app = JFactory::getApplication();
 		
 		if (!file_exists(JPATH_ROOT.DS.'components'.DS.'com_getbible'.DS.'helpers'.DS.'script_checker.php')) {
-			$app->enqueueMessage('Please install the <a href="https://getbible.net/downloads" target="_blank">GetBible component</a> before continuing.', 'error');
-			return false;
+			$this->network = true;
+			$app->enqueueMessage('Please note that you will need to setup your network url in the plugin settings, or install the <a href="https://getbible.net/downloads" target="_blank">GetBible component</a> before continuing.', 'error');
 		}
 		
 		$jversion = new JVersion();
@@ -95,10 +96,17 @@ class plgcontentloadscriptureInstallerScript
 			$query = $db->getQuery(true);
 			
 			// Fields to update.
-			$fields = array(
-				$db->quoteName('params') . ' = ' . $db->quote('{"callClass":"getBible","diplayOption":"1"}'),
-				$db->quoteName('enabled') . ' = ' . $db->quote('1')
-			);
+			if($this->network){
+				$fields = array(
+					$db->quoteName('params') . ' = ' . $db->quote('{"callClass":"getBible","diplayOption":"1","method":"1","network_url":"http:\/\/getbible.net","network_key":""}'),
+					$db->quoteName('enabled') . ' = ' . $db->quote('1')
+				);
+			} else {
+				$fields = array(
+					$db->quoteName('params') . ' = ' . $db->quote('{"callClass":"getBible","diplayOption":"1","method":"0","network_url":"","network_key":""}'),
+					$db->quoteName('enabled') . ' = ' . $db->quote('1')
+				);
+			}
 			$conditions = array(
 				$db->quoteName('type').' = '.$db->quote('plugin'), 
 				$db->quoteName('element').' = '.$db->quote('loadscripture'),

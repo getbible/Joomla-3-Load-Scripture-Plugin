@@ -234,6 +234,32 @@ class PlgContentLoadscripture extends JPlugin
 				}
 			}
 		}
+		if (!$this->js_loaded('json')) {
+			if( $this->params->get('method') == 1){
+				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/jquery.json.min.js');
+			} else {
+				if ($this->com_params->get('jsonQueryOptions') == 1){
+					$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'jquery.json.min.js');
+				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+					$this->document->addScript('https://getbible.net/media/com_getbible/js/jquery.json.min.js');
+				} else {
+					$this->document->addScript('http://getbible.net/media/com_getbible/js/jquery.json.min.js');
+				}
+			}
+		}
+		if (!$this->js_loaded('jstorage')) {
+			if( $this->params->get('method') == 1){
+				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/jstorage.min.js');
+			} else {
+				if ($this->com_params->get('jsonQueryOptions') == 1){
+					$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'jstorage.min.js');
+				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+					$this->document->addScript('https://getbible.net/media/com_getbible/js/jstorage.min.js');
+				} else {
+					$this->document->addScript('http://getbible.net/media/com_getbible/js/jstorage.min.js');
+				}
+			}
+		}
 		// load the correct url
 		if( $this->params->get('method') == 1){
 			$this->action = $this->params->get('network_url').'/index.php?option=com_getbible&view=json';
@@ -260,48 +286,89 @@ class PlgContentLoadscripture extends JPlugin
 		
 		$script .= "
 		function loadscripture(request,addTo,diplayOption,version) {
+			var requestStore = request;
+			// if memory is too full remove some
+			if(jQuery.jStorage.storageSize() > 4500000){ 
+				var storeIndex = jQuery.jStorage.index();
+				// now remove the first once set when full
+				jQuery.jStorage.deleteKey(storeIndex[0]);
+				jQuery.jStorage.deleteKey(storeIndex[1]);
+				jQuery.jStorage.deleteKey(storeIndex[2]);
+				jQuery.jStorage.deleteKey(storeIndex[3]);
+				jQuery.jStorage.deleteKey(storeIndex[4]);
+				
+			}
 			if (typeof appKey !== 'undefined') {
 				request = request+'&appKey='+appKey;
-			}else if (typeof key !== 'undefined') {
+			} else if (typeof key !== 'undefined') {
 				request = request+'&key='+key;
 			}
-			jQuery.ajax({
-			 url:'".$this->action."',
-			 dataType: 'jsonp',
-			 data: request,
-			 jsonp: 'getbible',
-			 success:function(json){
+			// Check if requestStore exists in the local storage
+			var jsonStore = jQuery.jStorage.get(requestStore);
+			if(!jsonStore){
+				jQuery.ajax({
+				 url:'".$this->action."',
+				 dataType: 'jsonp',
+				 data: request,
+				 jsonp: 'getbible',
+				 success:function(json){
+					 // and save the result
+					 jQuery.jStorage.set(requestStore,json);
+					 // set text direction
+					 if (json.direction == 'RTL'){
+						var direction = 'rtl';
+					 } else {
+						var direction = 'ltr'; 
+					 }
+					 // check json
+					 if (json.type == 'verse'){
+						setVerses(json,direction,addTo,diplayOption,version);
+					 } else if (json.type == 'chapter'){
+						 if(diplayOption == 'diplay_1') {
+							jQuery('#'+addTo).prop('title', 'Whole chapter/s not allowed in tooltip mode, please select another.');
+						} else {
+							setChapter(json,direction,addTo,diplayOption,version);
+						}
+					 } else if (json.type == 'book'){
+						 if(diplayOption == 'diplay_1') {
+							jQuery('#'+addTo).prop('title', 'Whole book/s! not allowed in tooltip mode, please select another.');
+						} else {
+							setBook(json,direction,addTo,diplayOption,version);
+						}
+					 } 
+				 },
+				 error:function(){
+						if(diplayOption == 'diplay_1') {
+							jQuery('#'+addTo).prop('title', 'No scripture was returned, please fix scripture reference!');
+						} else {
+							jQuery('#'+addTo).html('<span class=\"uk-text-danger\">No scripture was returned, please fix scripture reference!</span>');
+						}
+					 },
+				});
+			} else {
 				 // set text direction
-				 if (json.direction == 'RTL'){
+				 if (jsonStore.direction == 'RTL'){
 					var direction = 'rtl';
 				 } else {
 					var direction = 'ltr'; 
 				 }
-				 // check json
-				 if (json.type == 'verse'){
-					setVerses(json,direction,addTo,diplayOption,version);
-				 } else if (json.type == 'chapter'){
+				 // check jsonStore
+				 if (jsonStore.type == 'verse'){
+					setVerses(jsonStore,direction,addTo,diplayOption,version);
+				 } else if (jsonStore.type == 'chapter'){
 					 if(diplayOption == 'diplay_1') {
 						jQuery('#'+addTo).prop('title', 'Whole chapter/s not allowed in tooltip mode, please select another.');
 					} else {
-						setChapter(json,direction,addTo,diplayOption,version);
+						setChapter(jsonStore,direction,addTo,diplayOption,version);
 					}
-				 } else if (json.type == 'book'){
+				 } else if (jsonStore.type == 'book'){
 					 if(diplayOption == 'diplay_1') {
 						jQuery('#'+addTo).prop('title', 'Whole book/s! not allowed in tooltip mode, please select another.');
 					} else {
-						setBook(json,direction,addTo,diplayOption,version);
+						setBook(jsonStore,direction,addTo,diplayOption,version);
 					}
 				 } 
-			 },
-			 error:function(){
-				 	if(diplayOption == 'diplay_1') {
-						jQuery('#'+addTo).prop('title', 'No scripture was returned, please fix scripture reference!');
-					} else {
-						jQuery('#'+addTo).html('<span class=\"uk-text-danger\">No scripture was returned, please fix scripture reference!</span>');
-					}
-				 },
-			});
+			}
 		}
 		
 		// Set Verses

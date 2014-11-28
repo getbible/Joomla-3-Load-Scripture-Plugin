@@ -126,23 +126,24 @@ class PlgContentLoadscripture extends JPlugin
 		$request 			= 'p='.urlencode($json_scripture).'&v='.strtolower(urlencode($version));
 		// load result based on desplay option
 		if($this->diplayOption == 2){
-			
+			// offcanvas display option
 			$script = '<a href="#'.$id.'" data-uk-offcanvas>'.$this->htmlEscape($scripture).'</a>';
 			$this->buket .= '<div id="'.$id.'" class="uk-offcanvas"><div class="uk-offcanvas-bar"><div class="uk-panel" id="can_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </div></div></div>';
 			$this->buket .= "<script type=\"text/javascript\"> jQuery('#".$id."').click(loadscripture('".$request."','can_".$id."','diplay_2', '".strtoupper($version)."'));</script>";
 			
 		} else if($this->diplayOption == 3){
-			
+			// popup display option
 			$script = '<a href="#'.$id.'" data-uk-modal>'.$this->htmlEscape($scripture).'</a>';
 			$this->buket .= '<div id="'.$id.'" class="uk-modal"><div class="uk-modal-dialog"><a class="uk-modal-close uk-close"></a><div class="uk-panel" id="pop_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </div></div></div>';
 			$this->buket .= "<script type=\"text/javascript\"> jQuery('#".$id."').click(loadscripture('".$request."','pop_".$id."','diplay_3', '".strtoupper($version)."'));</script>";
 			
 		} elseif($this->diplayOption == 4){
-			
+			// inline display option			
 			$script .= '<span id="in_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </span>';
 			$this->buket .= "<script type=\"text/javascript\"> loadscripture('".$request."','in_".$id."','diplay_4', '".strtoupper($version)."') ;</script>";
 			
 		} else {
+			// tooltip display option
 			$script = '<span style="cursor: pointer;" id="'.$id.'" data-uk-tooltip="{pos:\'bottom-left\'}" title="">'.$this->htmlEscape($scripture).'</span>';
 			$this->buket .= "<script type=\"text/javascript\"> jQuery('#".$id."').hover(loadscripture('".$request."','".$id."','diplay_1', '".strtoupper($version)."')); </script>";
 		}
@@ -273,6 +274,7 @@ class PlgContentLoadscripture extends JPlugin
 			}
 		}
 		$script = "";
+		// set security keys
 		if( $this->params->get('method') == 1){
 			if(strlen($this->params->get('network_key')) > 0){
 				$script .= "var key = '".$this->params->get('network_key')."';"; 
@@ -283,7 +285,13 @@ class PlgContentLoadscripture extends JPlugin
 				$script .= "var appKey = '".$key."';"; 
 			}
 		}
-		
+		// set inline option
+		if($this->params->get('inlineOption')){
+			$script .= "var inlineOption = ".$this->params->get('inlineOption').";";
+		} else {
+			$script .= "var inlineOption = 1;";
+		}
+		// load the javascript needed to get the text
 		$script .= "
 		function loadscripture(request,addTo,diplayOption,version) {
 			var requestStore = request;
@@ -291,12 +299,11 @@ class PlgContentLoadscripture extends JPlugin
 			if(jQuery.jStorage.storageSize() > 4500000){ 
 				var storeIndex = jQuery.jStorage.index();
 				// now remove the first once set when full
-				jQuery.jStorage.deleteKey(storeIndex[0]);
-				jQuery.jStorage.deleteKey(storeIndex[1]);
-				jQuery.jStorage.deleteKey(storeIndex[2]);
-				jQuery.jStorage.deleteKey(storeIndex[3]);
-				jQuery.jStorage.deleteKey(storeIndex[4]);
-				
+				jQuery.jStorage.deleteKey(storeIndex[5]);
+				jQuery.jStorage.deleteKey(storeIndex[6]);
+				jQuery.jStorage.deleteKey(storeIndex[7]);
+				jQuery.jStorage.deleteKey(storeIndex[8]);
+				jQuery.jStorage.deleteKey(storeIndex[9]);
 			}
 			if (typeof appKey !== 'undefined') {
 				request = request+'&appKey='+appKey;
@@ -378,7 +385,7 @@ class PlgContentLoadscripture extends JPlugin
 					
 					if(diplayOption == 'diplay_1') {
 						output += '<p class=\"'+direction+'\">';
-					} else if(diplayOption == 'diplay_4') {
+					} else if(diplayOption == 'diplay_4' && inlineOption == 1) {
 						output +=  '<span class=\"'+direction+'\"><span class=\"ltr uk-text-muted\">'+value.book_name+'</span>&#160;';
 						var chapter_nr = value.chapter_nr;
 					} else {
@@ -386,20 +393,20 @@ class PlgContentLoadscripture extends JPlugin
 					}
 					
 					jQuery.each(value.chapter, function(index, value) {
-						if(diplayOption == 'diplay_4') {
+						if(diplayOption == 'diplay_4' && inlineOption == 1) {
 							output += '&#160;<span class=\"ltr uk-text-muted\">('+ chapter_nr+':'+value.verse_nr+ ')</span>&#160;';
 						} else {
 							output += '&#160;&#160;<small class=\"ltr\">' +value.verse_nr+ '</small>&#160;&#160;';
 						}
 						output += escapeHtmlEntities(value.verse);
 						
-						if(diplayOption == 'diplay_4') {
+						if(diplayOption == 'diplay_4' && inlineOption == 1) {
 							output += '';
 						} else {
 							output += '<br />';
 						}
 					});
-					if(diplayOption == 'diplay_4') {
+					if(diplayOption == 'diplay_4' && inlineOption == 1) {
 						output += '</span> <small class=\"ltr uk-text-muted\"> (Taken From '+version+')</small>&#160;';
 					} else {
 						output += '<small class=\"uk-text-right\"> (Taken From '+version+')</small></p>';

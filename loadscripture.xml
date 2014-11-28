@@ -46,6 +46,18 @@
 				</field>
 				
 				<field
+					name="inlineOption"
+					type="list"
+					default="1"
+					label="PLG_LOADSCRIPTURE_INLINE_OPTIONS_LABEL"
+					description="PLG_LOADSCRIPTURE_INLINE_OPTIONS_DESC">
+					<option
+						value="1">PLG_LOADSCRIPTURE_ONE_PARAGRAPH</option>
+					<option
+						value="2">PLG_LOADSCRIPTURE_PER_CHAPTER</option>
+				</field>
+				
+				<field
 					name="method"
 					type="list"
 					default="0"

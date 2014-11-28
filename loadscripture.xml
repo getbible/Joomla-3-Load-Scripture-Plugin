@@ -62,7 +62,7 @@
 					type="list"
 					default="0"
 					label="PLG_LOADSCRIPTURE_METHOD_LABEL"
-					description="PLG_LOADSCRIPTURE_METHOD_MODE_DESC">
+					description="PLG_LOADSCRIPTURE_METHOD_DESC">
 					<option
 						value="0">PLG_LOADSCRIPTURE_LOCAL_METHOD</option>
 					<option
@@ -71,6 +71,18 @@
 				<field name="network_url" type="url" default="http://www.example.com" label="PLG_LOADSCRIPTURE_NETWORK_URL_LABEL" description="PLG_LOADSCRIPTURE_NETWORK_URL_DESC" size="40" />
 				<field name="network_key" type="text" default="" label="PLG_LOADSCRIPTURE_NETWORK_KEY_LABEL" description="PLG_LOADSCRIPTURE_NETWORK_KEY_DESC" size="40" />
 				
+				
+				<field
+					name="callOption"
+					type="list"
+					default="1"
+					label="PLG_LOADSCRIPTURE_CALL_OPTION_LABEL"
+					description="PLG_LOADSCRIPTURE_CALL_OPTION_DESC">
+					<option
+						value="1">PLG_LOADSCRIPTURE_AJAX</option>
+					<option
+						value="2">PLG_LOADSCRIPTURE_CURL</option>
+				</field>
 			</fieldset>
 
 		</fields>

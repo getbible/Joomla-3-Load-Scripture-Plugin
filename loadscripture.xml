@@ -7,9 +7,9 @@
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	<authorEmail>llewellyn@vdm.io</authorEmail>
 	<authorUrl>www.vdm.io</authorUrl>
-	<version>1.0.0</version>
+	<version>1.0.2</version>
 	<description><![CDATA[
-		<h1>Load Scripture Content Plugin for getBible (v.1.0.0)</h1>
+		<h1>Load Scripture Content Plugin for getBible (v.1.0.2)</h1>
 		<div style="clear: both;"></div>
 		<p>Adding Scripture to your joomla content has never been so easy!</p>
 		<p><a href="https://getbible.net/load-scriptures" target="_blank"><strong>Documentation</strong></a></p>
@@ -43,6 +43,8 @@
 						value="3">PLG_LOADSCRIPTURE_POPUP</option>
 					<option
 						value="4">PLG_LOADSCRIPTURE_INLINE</option>
+					<option
+						value="5">PLG_LOADSCRIPTURE_LINK</option>
 				</field>
 				
 				<field

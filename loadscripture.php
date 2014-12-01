@@ -1,7 +1,7 @@
 <?php
 /**
 * 
-* 	@version 	1.0.1  November 7, 2014
+* 	@version 	1.0.2 December 01, 2014
 * 	@package 	Get Bible - Load Scripture Plugin
 * 	@author  	Llewellyn van der Merwe <llewellyn@vdm.io>
 * 	@copyright	Copyright (C) 2013 Vast Development Method <http://www.vdm.io>
@@ -28,6 +28,9 @@ class PlgContentLoadscripture extends JPlugin
 	protected $buket;
 	protected $cURLheader;
 	protected $referer;
+	protected $jFactory;
+	protected $appMenuItemid;
+	protected $loacal = false;
 	
 	public function onPrepareContent(&$row, &$params, $page=0)
 	{
@@ -41,6 +44,12 @@ class PlgContentLoadscripture extends JPlugin
 
 	protected function _prepareLoadScripture(&$article, &$params, $page = 0)
 	{
+		$this->jFactory = JFactory::getApplication();
+		// check if this is a HTML stream
+		if ($this->jFactory->input->getCmd('format', 'html') != 'html')
+		{
+			return;
+		}
 		// get call string
 		$callClass = $this->params->get('callClass', 'getBible');
 		
@@ -69,6 +78,10 @@ class PlgContentLoadscripture extends JPlugin
 			$this->setDefaults();
 			$this->buket['div'] 	= '';
 			$this->buket['script'] 	= '';
+			if($this->params->get('callOption') == 2) {
+				// load session
+				$this->session  = JFactory::getSession();
+			}
 			foreach ($matches as $match) {
 				// $match[0] is full pattern match, $match[1] is the item id or alias
 				$scripture 	= trim($match[1]);
@@ -112,6 +125,10 @@ class PlgContentLoadscripture extends JPlugin
 				case 4:
 				$this->diplayOption = 4;
 				break;
+				case 'link':
+				case 5:
+				$this->diplayOption = 5;
+				break;
 				default:
 				$this->diplayOption = $this->params->get('diplayOption');
 			}
@@ -133,17 +150,27 @@ class PlgContentLoadscripture extends JPlugin
 		$get_scripture 	= preg_replace('/\s+/', '', $scripture);
 		
 		if($this->params->get('callOption') == 2) {
-			$request = '&p='.urlencode($get_scripture).'&v='.strtolower(urlencode($version));
+			if($this->diplayOption === 5){
+				$request = $get_scripture;
+			} else {
+				$request = '&p='.urlencode($get_scripture).'&v='.strtolower(urlencode($version));
+			}
 			return $this->setCurl($scripture, $id, $request, $version);
 		} else {
-			$request = 'p='.urlencode($get_scripture).'&v='.strtolower(urlencode($version));
+			if($this->diplayOption === 5){
+				$request = $get_scripture;
+			} else {
+				$request = 'p='.urlencode($get_scripture).'&v='.strtolower(urlencode($version));
+			}
 			return $this->setAjax($scripture, $id, $request, $version);
 		}
 	}
 	
 	protected function setCurl($scripture, $id, $request, $version)
 	{
-		$recievedResult = $this->getScriptureFormated($scripture, $request, $version);
+		if($this->diplayOption !== 5){
+			$recievedResult = $this->getScriptureFormated($scripture, $request, $version);
+		}
 		// load result based on desplay option
 		if($this->diplayOption == 2){
 			// offcanvas display option
@@ -160,7 +187,11 @@ class PlgContentLoadscripture extends JPlugin
 		} elseif($this->diplayOption == 4){
 			// inline display option
 			// return the html
-			return '<span >'.$recievedResult.'</span>';			
+			return '<span>'.$recievedResult.'</span>';			
+		} elseif($this->diplayOption == 5){
+			// link display option
+			// return the html
+			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).'</a>';				
 		} else {
 			// tooltip display option
 			// return the html
@@ -190,8 +221,13 @@ class PlgContentLoadscripture extends JPlugin
 			$this->buket['script'] .= "loadscripture('".$request."','in_".$id."','diplay_4', '".strtoupper($version)."');";
 			// return the html
 			return '<span id="in_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </span>';			
+		} elseif($this->diplayOption == 5){
+			// link display option
+			// return the html
+			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).'</a>';	
 		} else {
 			// tooltip display option
+
 			$this->buket['script'] .= "jQuery('#".$id."').hover(loadscripture('".$request."','".$id."','diplay_1', '".strtoupper($version)."'));";
 			// return the html
 			return '<span style="cursor: pointer;" id="'.$id.'" data-uk-tooltip="{pos:\'bottom-left\'}" title="">'.$this->htmlEscape($scripture).'</span>';
@@ -232,10 +268,24 @@ class PlgContentLoadscripture extends JPlugin
 		$this->document		= &JFactory::getDocument();
 		// set the getBible component params
 		if( $this->params->get('method') == 1){
-			$this->com_params = false;
+			$this->com_params	= false;
+			$this->component	= false;
+			$this->appLink		= $this->params->get('network_url').'/index.php?option=com_getbible&view=app';
 		} else {
-			$this->com_params = &JComponentHelper::getParams('com_getbible');
+			// set the getBible component defaults
+        	$this->component 		= &JComponentHelper::getComponent('com_getbible');
+			$this->com_params 		= &JComponentHelper::getParams('com_getbible');
+			$this->appMenuItemid	= $this->getMenuItemId('app');
+			
+			// build the link
+			if($this->appMenuItemid){
+				$this->appLink 	= $this->getRouteUrl('index.php?Itemid='.$this->appMenuItemid);
+			} else {
+				$this->appLink 	= $this->getRouteUrl('index.php?option=com_getbible&view=app');
+			}
 		}
+		
+				
 		// make sure all scripts are loaded
 		if (!$this->css_loaded('uikit')) {
 			if( $this->params->get('method') == 1){
@@ -304,7 +354,7 @@ class PlgContentLoadscripture extends JPlugin
 					$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json'.$key;
 				}
 			}
-			$this->referer 	= JURI::root();
+			$this->referer 	= JURI::current();
 			// setup the curl header data once here
 			$this->cURLheader[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
 			$this->cURLheader[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
@@ -381,6 +431,15 @@ class PlgContentLoadscripture extends JPlugin
 	protected function javascriptFunc()
 	{
 		return "
+			function loadAppPage(request, version){
+				var url = '".$this->appLink."';
+				var input = '<input type=\"hidden\" name=\"search_app\" value=\"1\" />';
+					input += '<input type=\"hidden\" name=\"search_version\" value=\"'+ version +'\" />';
+					input += '<input type=\"hidden\" name=\"search\" value=\"'+ request +'\" />';
+					input += '<input type=\"hidden\" name=\"search_type\" value=\"all\" />';
+					input += '<input type=\"hidden\" name=\"search_crit\" value=\"1_1_1\" />';
+				jQuery('<form action=\"'+ url +'\" method=\"post\">'+input+'</form>').appendTo('body').submit().remove();
+			}
 			function loadscripture(request,addTo,diplayOption,version) {
 				var requestStore = request;
 				// if memory is too full remove some
@@ -558,20 +617,47 @@ class PlgContentLoadscripture extends JPlugin
 			";
 	}
 	
+	protected function getMenuItemId($view) {
+
+        $menu 		= $this->jFactory->getMenu();
+        //get only com_getbible menu items
+        $items  	= $menu->getItems('component_id', $this->component->id);
+		
+        foreach ($items as $item) {
+            if (isset($item->query['view']) && $item->query['view'] === $view) {
+				return $item->id;
+			}
+        }
+
+        return false;
+
+    }
+	
+	protected function getRouteUrl($route) {
+
+		// Get the global site router.
+		$config = &JFactory::getConfig();
+		$router = JRouter::getInstance('site');
+		$router->setMode( $config->get('sef', 1) );
+	
+		$uri    = &$router->build($route);
+		$path   = $uri->toString(array('path', 'query', 'fragment'));
+	
+		return $path;
+	}
+	
 	protected function js_loaded($script_name)
 	{
 		// UIkit check point
 		if($script_name == 'uikit'){
-			$app            	= JFactory::getApplication();
-			$getTemplateName  	= $app->getTemplate('template')->template;
+			$getTemplateName  	= $this->jFactory->getTemplate('template')->template;
 			
 			if (strpos($getTemplateName,'yoo') !== false) {
 				return true;
 			}
 		}
 		
-		$document 	=& JFactory::getDocument();
-		$head_data 	= $document->getHeadData();
+		$head_data 	= $this->document->getHeadData();
 		foreach (array_keys($head_data['scripts']) as $script) {
 			if (stristr($script, $script_name)) {
 				return true;
@@ -585,16 +671,14 @@ class PlgContentLoadscripture extends JPlugin
 	{
 		// UIkit check point
 		if($script_name == 'uikit'){
-			$app            	= JFactory::getApplication();
-			$getTemplateName  	= $app->getTemplate('template')->template;
+			$getTemplateName  	= $this->jFactory->getTemplate('template')->template;
 			
 			if (strpos($getTemplateName,'yoo') !== false) {
 				return true;
 			}
 		}
 		
-		$document 	=& JFactory::getDocument();
-		$head_data 	= $document->getHeadData();
+		$head_data 	= $this->document->getHeadData();
 		
 		foreach (array_keys($head_data['styleSheets']) as $script) {
 			if (stristr($script, $script_name)) {
@@ -607,14 +691,20 @@ class PlgContentLoadscripture extends JPlugin
 	
 	protected function getScriptureFormated($scripture, $request, $version)
 	{
-		// set the url to use in curl command
-		$url 	= $this->action.$request;
-		// get the result set from the set url
-		$result = $this->getScriptureCurl($url);
+		// check if it has the result in the session
+		$result = $this->session->get($request, false);
+		if($result){
+			$result	= json_decode(base64_decode($result));
+		} else {
+			// set the url to use in curl command
+			$url 	= $this->action.$request;
+			// get the result set from the set url
+			$result = $this->getScriptureCurl($url);
+			$this->session->set($request, base64_encode($result));
+			$result = json_decode($result);
+		}
 		
-		if(is_object($result)){
-			// save the result (((we may want to store the results in the session, since this will save making the query again if page reload happens)))
-			
+		if(is_object($result)){			
 			// set text direction
 			if ($result->direction == 'RTL'){
 				$direction = 'rtl';
@@ -732,6 +822,6 @@ class PlgContentLoadscripture extends JPlugin
 		$results = rtrim($results, ")");
 		$results = ltrim($results, '(');
 		// retun object
-		return json_decode($results);
+		return $results;
 	}
 }

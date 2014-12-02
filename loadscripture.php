@@ -191,7 +191,7 @@ class PlgContentLoadscripture extends JPlugin
 		} elseif($this->diplayOption == 5){
 			// link display option
 			// return the html
-			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).'</a>';				
+			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).' ('.strtoupper($version).')</a>';				
 		} else {
 			// tooltip display option
 			// return the html
@@ -224,7 +224,7 @@ class PlgContentLoadscripture extends JPlugin
 		} elseif($this->diplayOption == 5){
 			// link display option
 			// return the html
-			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).'</a>';	
+			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).' ('.strtoupper($version).')</a>';	
 		} else {
 			// tooltip display option
 

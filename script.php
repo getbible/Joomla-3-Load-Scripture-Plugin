@@ -119,7 +119,7 @@ class plgcontentloadscriptureInstallerScript
 			
 			if($result){
 				echo '	<h2 style="text-align:center">Congratulations! The Load Scripture plugin for getBible is now installed!</h2>
-						<p style="text-align:center">It is already activated and can be used with the <b>&lt;span class=&quot;getbible&quot;&gt;1 John 3:16 (kjv)&lt;/span&gt;</b> string in your content.</p>';
+						<p style="text-align:center">It is already activated and can be used with the <b>&lt;span class=&quot;getBible&quot;&gt;1 John 3:16 (kjv)&lt;/span&gt;</b> string in your content.</p>';
 			} else {
 				$app = JFactory::getApplication();
 				$app->enqueueMessage('There was an error setting the plugin status, please do it manualy!', 'error');

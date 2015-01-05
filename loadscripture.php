@@ -320,7 +320,7 @@ class PlgContentLoadscripture extends JPlugin
 		if (!$this->js_loaded('jquery')) {	
 			JHtml::_('jquery.framework');
 		}
-		if (!$this->js_loaded('uikit')) {
+		if (!$this->js_loaded('uikit.min')) {
 			if( $this->params->get('method') == 1){
 				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/uikit.min.js');
 			} else {
@@ -648,44 +648,23 @@ class PlgContentLoadscripture extends JPlugin
 	
 	protected function js_loaded($script_name)
 	{
-		// UIkit check point
-		if($script_name == 'uikit'){
-			$getTemplateName  	= $this->jFactory->getTemplate('template')->template;
-			
-			if (strpos($getTemplateName,'yoo') !== false) {
-				return true;
-			}
-		}
-		
 		$head_data 	= $this->document->getHeadData();
 		foreach (array_keys($head_data['scripts']) as $script) {
 			if (stristr($script, $script_name)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 	
 	protected function css_loaded($script_name)
 	{
-		// UIkit check point
-		if($script_name == 'uikit'){
-			$getTemplateName  	= $this->jFactory->getTemplate('template')->template;
-			
-			if (strpos($getTemplateName,'yoo') !== false) {
-				return true;
-			}
-		}
-		
 		$head_data 	= $this->document->getHeadData();
-		
 		foreach (array_keys($head_data['styleSheets']) as $script) {
 			if (stristr($script, $script_name)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 	

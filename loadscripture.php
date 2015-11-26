@@ -1,25 +1,27 @@
 <?php
-/**
-* 
-* 	@version 	1.0.2 December 01, 2014
-* 	@package 	Get Bible - Load Scripture Plugin
-* 	@author  	Llewellyn van der Merwe <llewellyn@vdm.io>
-* 	@copyright	Copyright (C) 2013 Vast Development Method <http://www.vdm.io>
-* 	@license	GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
-*
-**/
 
+/**
+ * 
+ * 	@version 	1.0.2 December 01, 2014
+ * 	@package 	Get Bible - Load Scripture Plugin
+ * 	@author  	Llewellyn van der Merwe <llewellyn@vdm.io>
+ * 	@copyright	Copyright (C) 2013 Vast Development Method <http://www.vdm.io>
+ * 	@license	GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
+ *
+ * */
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.helper');
 
 // Added for Joomla 3.0
-if(!defined('DS')){
-	define('DS',DIRECTORY_SEPARATOR);
-};
+if (!defined('DS'))
+{
+	define('DS', DIRECTORY_SEPARATOR);
+}
 
 class PlgContentLoadscripture extends JPlugin
 {
+
 	protected $component;
 	protected $document;
 	protected $com_params;
@@ -31,8 +33,8 @@ class PlgContentLoadscripture extends JPlugin
 	protected $jFactory;
 	protected $appMenuItemid;
 	protected $loacal = false;
-	
-	public function onPrepareContent(&$row, &$params, $page=0)
+
+	public function onPrepareContent(&$row, &$params, $page = 0)
 	{
 		return $this->_prepareLoadScripture($row, $params, $page);
 	}
@@ -52,7 +54,7 @@ class PlgContentLoadscripture extends JPlugin
 		}
 		// get call string
 		$callClass = $this->params->get('callClass', 'getBible');
-		
+
 		// Simple performance check to determine whether bot should process further
 		if (strpos($article->text, $callClass) === false)
 		{
@@ -60,42 +62,46 @@ class PlgContentLoadscripture extends JPlugin
 		}
 		// setup regex match
 		$callClass = preg_quote($callClass);
-		$regex = '/<span class="'.$callClass.'">(.*?)<\/span>/i';
-		
-		$this->_doWork($article,$regex);
+		$regex = '/<span class="' . $callClass . '">(.*?)<\/span>/i';
+
+		$this->_doWork($article, $regex);
 
 		return true;
-
 	}
-	
-	protected function _doWork(&$article,$regex)
+
+	protected function _doWork(&$article, $regex)
 	{
 		// find all instances of plugin and put in $matches
 		preg_match_all($regex, $article->text, $matches, PREG_SET_ORDER);
 		// No matches, skip this
-		if (count($matches)){
+		if (count($matches))
+		{
 			// load all the defaults once
 			$this->setDefaults();
-			$this->buket['div'] 	= '';
-			$this->buket['script'] 	= '';
-			if($this->params->get('callOption') == 2) {
+			$this->buket['div'] = '';
+			$this->buket['script'] = '';
+			if ($this->params->get('callOption') == 2)
+			{
 				// load session
-				$this->session  = JFactory::getSession();
+				$this->session = JFactory::getSession();
 			}
-			foreach ($matches as $match) {
+			foreach ($matches as $match)
+			{
 				// $match[0] is full pattern match, $match[1] is the item id or alias
-				$scripture 	= trim($match[1]);
-				$target 	= preg_quote($match[0]);
-				if ($scripture) {
+				$scripture = trim($match[1]);
+				$target = preg_quote($match[0]);
+				if ($scripture)
+				{
 					$output = $this->_setScript($scripture);
 					// We should replace only first occurrence in order to allow positions with the same name to regenerate their content:
 					$preg_replace["|$target|"] = $output;
 				}
 			}
 			$article->text = preg_replace(array_keys($preg_replace), array_values($preg_replace), $article->text, 1);
-			$article->text .=  $this->buket['div'];
-			if($this->params->get('callOption') == 1) {
-				$article->text .= ' <script type="text/javascript">'.$this->buket['script'].'</script> ';
+			$article->text .= $this->buket['div'];
+			if ($this->params->get('callOption') == 1)
+			{
+				$article->text .= ' <script type="text/javascript">' . $this->buket['script'] . '</script> ';
 			}
 		}
 		return true;
@@ -104,198 +110,250 @@ class PlgContentLoadscripture extends JPlugin
 	protected function _setScript($scripture)
 	{
 		// set defaults
-		$id 				= $this->randomkey(8);
-		$version 			= $this->getStringIn($scripture,'(',')');
-		$diplayOption 		= $this->getStringIn($scripture,'[',']');
-		if($diplayOption){
-			switch($diplayOption){
+		$id = $this->randomkey(8);
+		$version = $this->getStringIn($scripture, '(', ')');
+		$diplayOption = $this->getStringIn($scripture, '[', ']');
+		if ($diplayOption)
+		{
+			switch ($diplayOption)
+			{
 				case 'tip':
 				case 1:
-				$this->diplayOption = 1;
-				break;
+					$this->diplayOption = 1;
+					break;
 				case 'can':
 				case 2:
-				$this->diplayOption = 2;
-				break;
+					$this->diplayOption = 2;
+					break;
 				case 'pop':
 				case 3:
-				$this->diplayOption = 3;
-				break;
+					$this->diplayOption = 3;
+					break;
 				case 'in':
 				case 4:
-				$this->diplayOption = 4;
-				break;
+					$this->diplayOption = 4;
+					break;
 				case 'link':
 				case 5:
-				$this->diplayOption = 5;
-				break;
+					$this->diplayOption = 5;
+					break;
 				default:
-				$this->diplayOption = $this->params->get('diplayOption');
+					$this->diplayOption = $this->params->get('diplayOption');
 			}
-		} else {
+		}
+		else
+		{
 			$this->diplayOption = $this->params->get('diplayOption');
 		}
-		if(!$version){
-			if( $this->params->get('method') == 1){
-				$version 	= 'kjv';
-			} else {
-				$version 	= $this->com_params->get('defaultStartVersion');
+		if (!$version)
+		{
+			if ($this->params->get('method') == 1)
+			{
+				$version = 'kjv';
 			}
-			
-			$scripture 	= current(explode('[', $scripture));
-		} else {
-			$scripture 	= current(explode('(', $scripture));
+			else
+			{
+				$version = $this->com_params->get('defaultStartVersion');
+			}
+
+			$scripture = current(explode('[', $scripture));
+		}
+		else
+		{
+			$scripture = current(explode('(', $scripture));
 		}
 		// remove all white space
-		$get_scripture 	= preg_replace('/\s+/', '', $scripture);
-		
-		if($this->params->get('callOption') == 2) {
-			if($this->diplayOption === 5){
+		$get_scripture = preg_replace('/\s+/', '', $scripture);
+
+		if ($this->params->get('callOption') == 2)
+		{
+			if ($this->diplayOption === 5)
+			{
 				$request = $get_scripture;
-			} else {
-				$request = '&p='.urlencode($get_scripture).'&v='.strtolower(urlencode($version));
+			}
+			else
+			{
+				$request = '&p=' . urlencode($get_scripture) . '&v=' . strtolower(urlencode($version));
 			}
 			return $this->setCurl($scripture, $id, $request, $version);
-		} else {
-			if($this->diplayOption === 5){
+		}
+		else
+		{
+			if ($this->diplayOption === 5)
+			{
 				$request = $get_scripture;
-			} else {
-				$request = 'p='.urlencode($get_scripture).'&v='.strtolower(urlencode($version));
+			}
+			else
+			{
+				$request = 'p=' . urlencode($get_scripture) . '&v=' . strtolower(urlencode($version));
 			}
 			return $this->setAjax($scripture, $id, $request, $version);
 		}
 	}
-	
+
 	protected function setCurl($scripture, $id, $request, $version)
 	{
-		if($this->diplayOption !== 5){
+		if ($this->diplayOption !== 5)
+		{
 			$recievedResult = $this->getScriptureFormated($scripture, $request, $version);
 		}
 		// load result based on desplay option
-		if($this->diplayOption == 2){
+		if ($this->diplayOption == 2)
+		{
 			// offcanvas display option
-			$this->buket['div'] .= '<div id="'.$id.'" class="uk-offcanvas"><div class="uk-offcanvas-bar"><div class="uk-panel" id="can_'.$id.'">'.$recievedResult.'</div></div></div>';
+			$this->buket['div'] .= '<div id="' . $id . '" class="uk-offcanvas"><div class="uk-offcanvas-bar"><div class="uk-panel" id="can_' . $id . '">' . $recievedResult . '</div></div></div>';
 			// return the html
-			return  '<a href="#'.$id.'" data-uk-offcanvas>'.$this->htmlEscape($scripture).'</a>';
-			
-		} else if($this->diplayOption == 3){
+			return '<a href="#' . $id . '" data-uk-offcanvas>' . $this->htmlEscape($scripture) . '</a>';
+		}
+		elseif ($this->diplayOption == 3)
+		{
 			// popup display option
-			$this->buket['div'] .= '<div id="'.$id.'" class="uk-modal"><div class="uk-modal-dialog"><a class="uk-modal-close uk-close"></a><div class="uk-panel" id="pop_'.$id.'">'.$recievedResult.'</div></div></div>';
+			$this->buket['div'] .= '<div id="' . $id . '" class="uk-modal"><div class="uk-modal-dialog"><a class="uk-modal-close uk-close"></a><div class="uk-panel" id="pop_' . $id . '">' . $recievedResult . '</div></div></div>';
 			// return the html
-			return  '<a href="#'.$id.'" data-uk-modal>'.$this->htmlEscape($scripture).'</a>';
-			
-		} elseif($this->diplayOption == 4){
+			return '<a href="#' . $id . '" data-uk-modal>' . $this->htmlEscape($scripture) . '</a>';
+		}
+		elseif ($this->diplayOption == 4)
+		{
 			// inline display option
 			// return the html
-			return '<span>'.$recievedResult.'</span>';			
-		} elseif($this->diplayOption == 5){
+			return '<span>' . $recievedResult . '</span>';
+		}
+		elseif ($this->diplayOption == 5)
+		{
 			// link display option
 			// return the html
-			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).' ('.strtoupper($version).')</a>';				
-		} else {
+			return '<a id="' . $id . '" href="javascript:void(0)" onclick="loadAppPage(\'' . $request . '\', \'' . strtolower($version) . '\')">' . $this->htmlEscape($scripture) . ' (' . strtoupper($version) . ')</a>';
+		}
+		else
+		{
 			// tooltip display option
 			// return the html
-			return '<span style="cursor: pointer;" data-uk-tooltip="{pos:\'bottom-left\'}" title="'.$this->htmlEscape($recievedResult).'">'.$this->htmlEscape($scripture).'</span>';
+			return '<span style="cursor: pointer;" data-uk-tooltip="{pos:\'bottom-left\'}" title="' . $this->htmlEscape($recievedResult) . '">' . $this->htmlEscape($scripture) . '</span>';
 		}
 	}
-	
+
 	protected function setAjax($scripture, $id, $request, $version)
 	{
 		// load result based on desplay option
-		if($this->diplayOption == 2){
+		if ($this->diplayOption == 2)
+		{
 			// offcanvas display option
-			$this->buket['div'] .= '<div id="'.$id.'" class="uk-offcanvas"><div class="uk-offcanvas-bar"><div class="uk-panel" id="can_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </div></div></div>';
-			$this->buket['script'] .= "jQuery('#".$id."').click(loadscripture('".$request."','can_".$id."','diplay_2', '".strtoupper($version)."'));";
+			$this->buket['div'] .= '<div id="' . $id . '" class="uk-offcanvas"><div class="uk-offcanvas-bar"><div class="uk-panel" id="can_' . $id . '"> loading ' . $this->htmlEscape($scripture) . '... </div></div></div>';
+			$this->buket['script'] .= "jQuery('#" . $id . "').click(loadscripture('" . $request . "','can_" . $id . "','diplay_2', '" . strtoupper($version) . "'));";
 			// return the html
-			return  '<a href="#'.$id.'" data-uk-offcanvas>'.$this->htmlEscape($scripture).'</a>';
-			
-		} else if($this->diplayOption == 3){
+			return '<a href="#' . $id . '" data-uk-offcanvas>' . $this->htmlEscape($scripture) . '</a>';
+		}
+		else if ($this->diplayOption == 3)
+		{
 			// popup display option
-			$this->buket['div'] .= '<div id="'.$id.'" class="uk-modal"><div class="uk-modal-dialog"><a class="uk-modal-close uk-close"></a><div class="uk-panel" id="pop_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </div></div></div>';
-			$this->buket['script'] .= "jQuery('#".$id."').click(loadscripture('".$request."','pop_".$id."','diplay_3', '".strtoupper($version)."'));";
+			$this->buket['div'] .= '<div id="' . $id . '" class="uk-modal"><div class="uk-modal-dialog"><a class="uk-modal-close uk-close"></a><div class="uk-panel" id="pop_' . $id . '"> loading ' . $this->htmlEscape($scripture) . '... </div></div></div>';
+			$this->buket['script'] .= "jQuery('#" . $id . "').click(loadscripture('" . $request . "','pop_" . $id . "','diplay_3', '" . strtoupper($version) . "'));";
 			// return the html
-			return  '<a href="#'.$id.'" data-uk-modal>'.$this->htmlEscape($scripture).'</a>';
-			
-		} elseif($this->diplayOption == 4){
+			return '<a href="#' . $id . '" data-uk-modal>' . $this->htmlEscape($scripture) . '</a>';
+		}
+		elseif ($this->diplayOption == 4)
+		{
 			// inline display option			
-			$this->buket['script'] .= "loadscripture('".$request."','in_".$id."','diplay_4', '".strtoupper($version)."');";
+			$this->buket['script'] .= "loadscripture('" . $request . "','in_" . $id . "','diplay_4', '" . strtoupper($version) . "');";
 			// return the html
-			return '<span id="in_'.$id.'"> loading '.$this->htmlEscape($scripture).'... </span>';			
-		} elseif($this->diplayOption == 5){
+			return '<span id="in_' . $id . '"> loading ' . $this->htmlEscape($scripture) . '... </span>';
+		}
+		elseif ($this->diplayOption == 5)
+		{
 			// link display option
 			// return the html
-			return '<a id="'.$id.'" href="javascript:void(0)" onclick="loadAppPage(\''.$request.'\', \''.strtolower($version).'\')">'.$this->htmlEscape($scripture).' ('.strtoupper($version).')</a>';	
-		} else {
+			return '<a id="' . $id . '" href="javascript:void(0)" onclick="loadAppPage(\'' . $request . '\', \'' . strtolower($version) . '\')">' . $this->htmlEscape($scripture) . ' (' . strtoupper($version) . ')</a>';
+		}
+		else
+		{
 			// tooltip display option
 
-			$this->buket['script'] .= "jQuery('#".$id."').hover(loadscripture('".$request."','".$id."','diplay_1', '".strtoupper($version)."'));";
+			$this->buket['script'] .= "jQuery('#" . $id . "').hover(loadscripture('" . $request . "','" . $id . "','diplay_1', '" . strtoupper($version) . "'));";
 			// return the html
-			return '<span style="cursor: pointer;" id="'.$id.'" data-uk-tooltip="{pos:\'bottom-left\'}" title="">'.$this->htmlEscape($scripture).'</span>';
+			return '<span style="cursor: pointer;" id="' . $id . '" data-uk-tooltip="{pos:\'bottom-left\'}" title="">' . $this->htmlEscape($scripture) . '</span>';
 		}
 	}
-	
-	protected function getStringIn($string, $fist = '(', $last = ')'){
-		$string = " ".$string;
-		$foo = strpos($string,$fist);
-		if($foo == 0) {
+
+	protected function getStringIn($string, $fist = '(', $last = ')')
+	{
+		$string = " " . $string;
+		$foo = strpos($string, $fist);
+		if ($foo == 0)
+		{
 			return false;
 		}
 		$foo += strlen($fist);
-		$var = strpos($string,$last,$foo) - $foo;
-		return substr($string,$foo,$var);
-		
+		$var = strpos($string, $last, $foo) - $foo;
+		return substr($string, $foo, $var);
 	}
-	
+
 	protected function htmlEscape($val)
 	{
 		return htmlentities($val, ENT_COMPAT, 'UTF-8');
 	}
-	
-	protected function randomkey($size) {
+
+	protected function randomkey($size)
+	{
 		$bag = "abcefghijknop1234567890qrstuwxyzABCDDEFGHIJKLLMMNOPQRSTUVVWXYZabcddefghijkllmmnopqrs0987654321tuvvwxyzABCEFGHIJKNOPQRSTUWXYZ";
 		$key = array();
 		$bagsize = strlen($bag) - 1;
-		for ($i = 0; $i < $size; $i++) {
+		for ($i = 0; $i < $size; $i++)
+		{
 			$get = rand(0, $bagsize);
 			$key[] = $bag[$get];
 		}
 		return implode($key);
 	}
-	
+
 	protected function setDefaults()
 	{
 		// get the document
-		$this->document		= &JFactory::getDocument();
+		$this->document = JFactory::getDocument();
 		// set the getBible component params
-		if( $this->params->get('method') == 1){
-			$this->com_params	= false;
-			$this->component	= false;
-			$this->appLink		= $this->params->get('network_url').'/index.php?option=com_getbible&view=app';
-		} else {
+		if ($this->params->get('method') == 1)
+		{
+			$this->com_params = false;
+			$this->component = false;
+			$this->appLink = $this->params->get('network_url') . '/index.php?option=com_getbible&view=app';
+		}
+		else
+		{
 			// set the getBible component defaults
-        	$this->component 		= &JComponentHelper::getComponent('com_getbible');
-			$this->com_params 		= &JComponentHelper::getParams('com_getbible');
-			$this->appMenuItemid	= $this->getMenuItemId('app');
-			
+			$this->component = JComponentHelper::getComponent('com_getbible');
+			$this->com_params = JComponentHelper::getParams('com_getbible');
+			$this->appMenuItemid = $this->getMenuItemId('app');
+
 			// build the link
-			if($this->appMenuItemid){
-				$this->appLink 	= $this->getRouteUrl('index.php?Itemid='.$this->appMenuItemid);
-			} else {
-				$this->appLink 	= $this->getRouteUrl('index.php?option=com_getbible&view=app');
+			if ($this->appMenuItemid)
+			{
+				$this->appLink = $this->getRouteUrl('index.php?Itemid=' . $this->appMenuItemid);
+			}
+			else
+			{
+				$this->appLink = $this->getRouteUrl('index.php?option=com_getbible&view=app');
 			}
 		}
-		
-				
+
+
 		// make sure all scripts are loaded
-		if (!$this->css_loaded('uikit')) {
-			if( $this->params->get('method') == 1){
-				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/css/uikit.min.css');
-			} else {
-				if ($this->com_params->get('jsonQueryOptions') == 1){
-					$this->document->addStyleSheet(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'css'.DS.'uikit.min.css');
-				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+		if (!$this->css_loaded('uikit'))
+		{
+			if ($this->params->get('method') == 1)
+			{
+				$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/css/uikit.min.css');
+			}
+			else
+			{
+				if ($this->com_params->get('jsonQueryOptions') == 1)
+				{
+					$this->document->addStyleSheet(JURI::base(true) . '/media/com_getbible/css/uikit.min.css');
+				}
+				elseif ($this->com_params->get('jsonQueryOptions') == 2)
+				{
 					$this->document->addScript('https://getbible.net/media/com_getbible/css/uikit.min.css');
-				} else {
+				}
+				else
+				{
 					$this->document->addScript('http://getbible.net/media/com_getbible/css/uikit.min.css');
 				}
 			}
@@ -315,46 +373,68 @@ class PlgContentLoadscripture extends JPlugin
 		}
 		";
 		$this->document->addStyleDeclaration($css);
-		
+
 		// add script to page
-		if (!$this->js_loaded('jquery')) {	
+		if (!$this->js_loaded('jquery'))
+		{
 			JHtml::_('jquery.framework');
 		}
-		if (!$this->js_loaded('uikit.min')) {
-			if( $this->params->get('method') == 1){
-				$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/uikit.min.js');
-			} else {
-				if ($this->com_params->get('jsonQueryOptions') == 1){
-					$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'uikit.min.js');
-				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+		if (!$this->js_loaded('uikit.min'))
+		{
+			if ($this->params->get('method') == 1)
+			{
+				$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/js/uikit.min.js');
+			}
+			else
+			{
+				if ($this->com_params->get('jsonQueryOptions') == 1)
+				{
+					$this->document->addScript(JURI::base(true) . '/media/com_getbible/js/uikit.min.js');
+				}
+				elseif ($this->com_params->get('jsonQueryOptions') == 2)
+				{
 					$this->document->addScript('https://getbible.net/media/com_getbible/js/uikit.min.js');
-				} else {
+				}
+				else
+				{
 					$this->document->addScript('http://getbible.net/media/com_getbible/js/uikit.min.js');
 				}
 			}
 		}
-		if($this->params->get('callOption') == 2) { // setup for the curl query
+		if ($this->params->get('callOption') == 2)
+		{ // setup for the curl query
 			// set security keys
 			$key = '';
-			if( $this->params->get('method') == 1){
-				if(strlen($this->params->get('network_key')) > 0){
-					$key = "&key=".$this->params->get('network_key'); 
-				}
-			} else {
-				if($this->com_params->get('jsonAPIaccess')){
-					$key = "&appKey=".JSession::getFormToken();
+			if ($this->params->get('method') == 1)
+			{
+				if (strlen($this->params->get('network_key')) > 0)
+				{
+					$key = "&key=" . $this->params->get('network_key');
 				}
 			}
-			if( $this->params->get('method') == 1){
-				$this->action = $this->params->get('network_url').'/index.php?option=com_getbible&view=json'.$key;
-			} else {
-				if ($this->com_params->get('jsonQueryOptions') == 1){
-					$this->action = 'index.php?option=com_getbible&view=json'.$key;
-				} else {
-					$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json'.$key;
+			else
+			{
+				if ($this->com_params->get('jsonAPIaccess'))
+				{
+					$key = "&appKey=" . JSession::getFormToken();
 				}
 			}
-			$this->referer 	= JURI::current();
+			if ($this->params->get('method') == 1)
+			{
+				$this->action = $this->params->get('network_url') . '/index.php?option=com_getbible&view=json' . $key;
+			}
+			else
+			{
+				if ($this->com_params->get('jsonQueryOptions') == 1)
+				{
+					$this->action = 'index.php?option=com_getbible&view=json' . $key;
+				}
+				else
+				{
+					$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json' . $key;
+				}
+			}
+			$this->referer = JURI::current();
 			// setup the curl header data once here
 			$this->cURLheader[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
 			$this->cURLheader[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
@@ -364,75 +444,110 @@ class PlgContentLoadscripture extends JPlugin
 			$this->cURLheader[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
 			$this->cURLheader[] = "Accept-Language: en-us,en;q=0.5";
 			$this->cURLheader[] = "Pragma: ";
-			 
-		} else { // setup for the ajax query
-			if (!$this->js_loaded('json')) {
-				if( $this->params->get('method') == 1){
-					$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/jquery.json.min.js');
-				} else {
-					if ($this->com_params->get('jsonQueryOptions') == 1){
-						$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'jquery.json.min.js');
-					} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+		}
+		else
+		{ // setup for the ajax query
+			if (!$this->js_loaded('json'))
+			{
+				if ($this->params->get('method') == 1)
+				{
+					$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/js/jquery.json.min.js');
+				}
+				else
+				{
+					if ($this->com_params->get('jsonQueryOptions') == 1)
+					{
+						$this->document->addScript(JURI::base(true) . '/media/com_getbible/js/jquery.json.min.js');
+					}
+					elseif ($this->com_params->get('jsonQueryOptions') == 2)
+					{
 						$this->document->addScript('https://getbible.net/media/com_getbible/js/jquery.json.min.js');
-					} else {
+					}
+					else
+					{
 						$this->document->addScript('http://getbible.net/media/com_getbible/js/jquery.json.min.js');
 					}
 				}
 			}
-			if (!$this->js_loaded('jstorage')) {
-				if( $this->params->get('method') == 1){
-					$this->document->addScript($this->params->get('network_url').'/media/com_getbible/js/jstorage.min.js');
-				} else {
-					if ($this->com_params->get('jsonQueryOptions') == 1){
-						$this->document->addScript(JURI::base( true ) .DS.'media'.DS.'com_getbible'.DS.'js'.DS.'jstorage.min.js');
-					} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+			if (!$this->js_loaded('jstorage'))
+			{
+				if ($this->params->get('method') == 1)
+				{
+					$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/js/jstorage.min.js');
+				}
+				else
+				{
+					if ($this->com_params->get('jsonQueryOptions') == 1)
+					{
+						$this->document->addScript(JURI::base(true) . '/media/com_getbible/js/jstorage.min.js');
+					}
+					elseif ($this->com_params->get('jsonQueryOptions') == 2)
+					{
 						$this->document->addScript('https://getbible.net/media/com_getbible/js/jstorage.min.js');
-					} else {
+					}
+					else
+					{
 						$this->document->addScript('http://getbible.net/media/com_getbible/js/jstorage.min.js');
 					}
 				}
 			}
 			// load the correct url
-			if( $this->params->get('method') == 1){
-				$this->action = $this->params->get('network_url').'/index.php?option=com_getbible&view=json';
-			} else {
-				if ($this->com_params->get('jsonQueryOptions') == 1){
+			if ($this->params->get('method') == 1)
+			{
+				$this->action = $this->params->get('network_url') . '/index.php?option=com_getbible&view=json';
+			}
+			else
+			{
+				if ($this->com_params->get('jsonQueryOptions') == 1)
+				{
 					$this->action = 'index.php?option=com_getbible&view=json';
-				} elseif ($this->com_params->get('jsonQueryOptions') == 2) {
+				}
+				elseif ($this->com_params->get('jsonQueryOptions') == 2)
+				{
 					$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json';
-				} else {
+				}
+				else
+				{
 					$this->action = 'https://getbible.net/index.php?option=com_getbible&view=json';
 				}
 			}
 			$script = "";
 			// set security keys
-			if( $this->params->get('method') == 1){
-				if(strlen($this->params->get('network_key')) > 0){
-					$script .= "var key = '".$this->params->get('network_key')."';"; 
+			if ($this->params->get('method') == 1)
+			{
+				if (strlen($this->params->get('network_key')) > 0)
+				{
+					$script .= "var key = '" . $this->params->get('network_key') . "';";
 				}
-			} else {
-				if($this->com_params->get('jsonAPIaccess')){
-					$key	= JSession::getFormToken();
-					$script .= "var appKey = '".$key."';"; 
+			}
+			else
+			{
+				if ($this->com_params->get('jsonAPIaccess'))
+				{
+					$key = JSession::getFormToken();
+					$script .= "var appKey = '" . $key . "';";
 				}
 			}
 			// set inline option
-			if($this->params->get('inlineOption')){
-				$script .= "var inlineOption = ".$this->params->get('inlineOption').";";
-			} else {
+			if ($this->params->get('inlineOption'))
+			{
+				$script .= "var inlineOption = " . $this->params->get('inlineOption') . ";";
+			}
+			else
+			{
 				$script .= "var inlineOption = 1;";
 			}
 			// load the javascript needed to get the text
 			$script .= $this->javascriptFunc();
-			$this->document->addScriptDeclaration($script); 
+			$this->document->addScriptDeclaration($script);
 		}
 	}
-	
+
 	protected function javascriptFunc()
 	{
 		return "
 			function loadAppPage(request, version){
-				var url = '".$this->appLink."';
+				var url = '" . $this->appLink . "';
 				var input = '<input type=\"hidden\" name=\"search_app\" value=\"1\" />';
 					input += '<input type=\"hidden\" name=\"search_version\" value=\"'+ version +'\" />';
 					input += '<input type=\"hidden\" name=\"search\" value=\"'+ request +'\" />';
@@ -461,7 +576,7 @@ class PlgContentLoadscripture extends JPlugin
 				var jsonStore = jQuery.jStorage.get(requestStore);
 				if(!jsonStore){
 					jQuery.ajax({
-					 url:'".$this->action."',
+					 url:'" . $this->action . "',
 					 dataType: 'jsonp',
 					 data: request,
 					 jsonp: 'getbible',
@@ -616,173 +731,219 @@ class PlgContentLoadscripture extends JPlugin
 			}
 			";
 	}
-	
-	protected function getMenuItemId($view) {
 
-        $menu 		= $this->jFactory->getMenu();
-        //get only com_getbible menu items
-        $items  	= $menu->getItems('component_id', $this->component->id);
-		
-        foreach ($items as $item) {
-            if (isset($item->query['view']) && $item->query['view'] === $view) {
+	protected function getMenuItemId($view)
+	{
+
+		$menu = $this->jFactory->getMenu();
+		//get only com_getbible menu items
+		$items = $menu->getItems('component_id', $this->component->id);
+
+		foreach ($items as $item)
+		{
+			if (isset($item->query['view']) && $item->query['view'] === $view)
+			{
 				return $item->id;
 			}
-        }
+		}
 
-        return false;
+		return false;
+	}
 
-    }
-	
-	protected function getRouteUrl($route) {
+	protected function getRouteUrl($route)
+	{
 
 		// Get the global site router.
-		$config = &JFactory::getConfig();
+		$config = JFactory::getConfig();
 		$router = JRouter::getInstance('site');
-		$router->setMode( $config->get('sef', 1) );
-	
-		$uri    = &$router->build($route);
-		$path   = $uri->toString(array('path', 'query', 'fragment'));
-	
+		$router->setMode($config->get('sef', 1));
+
+		$uri = $router->build($route);
+		$path = $uri->toString(array('path', 'query', 'fragment'));
+
 		return $path;
 	}
-	
+
 	protected function js_loaded($script_name)
 	{
-		$head_data 	= $this->document->getHeadData();
-		foreach (array_keys($head_data['scripts']) as $script) {
-			if (stristr($script, $script_name)) {
+		$head_data = $this->document->getHeadData();
+		foreach (array_keys($head_data['scripts']) as $script)
+		{
+			if (stristr($script, $script_name))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	protected function css_loaded($script_name)
 	{
-		$head_data 	= $this->document->getHeadData();
-		foreach (array_keys($head_data['styleSheets']) as $script) {
-			if (stristr($script, $script_name)) {
+		$head_data = $this->document->getHeadData();
+		foreach (array_keys($head_data['styleSheets']) as $script)
+		{
+			if (stristr($script, $script_name))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	protected function getScriptureFormated($scripture, $request, $version)
 	{
 		// check if it has the result in the session
 		$result = $this->session->get($request, false);
-		if($result){
-			$result	= json_decode(base64_decode($result));
-		} else {
+		if ($result)
+		{
+			$result = json_decode(base64_decode($result));
+		}
+		else
+		{
 			// set the url to use in curl command
-			$url 	= $this->action.$request;
+			$url = $this->action . $request;
 			// get the result set from the set url
 			$result = $this->getScriptureCurl($url);
 			$this->session->set($request, base64_encode($result));
 			$result = json_decode($result);
 		}
-		
-		if(is_object($result)){			
+
+		if (is_object($result))
+		{
 			// set text direction
-			if ($result->direction == 'RTL'){
+			if ($result->direction == 'RTL')
+			{
 				$direction = 'rtl';
-			} else {
-				$direction = 'ltr'; 
+			}
+			else
+			{
+				$direction = 'ltr';
 			}
 			// check the type of result returned
-			if ($result->type == 'verse'){
-				return $this->setVerses($result,$direction,$version);
-			} else if ($result->type == 'chapter'){
-				if($this->diplayOption == '1') {
+			if ($result->type == 'verse')
+			{
+				return $this->setVerses($result, $direction, $version);
+			}
+			elseif ($result->type == 'chapter')
+			{
+				if ($this->diplayOption == '1')
+				{
 					return "Whole chapter's not allowed in tooltip mode, please select another.";
-				} else {
-					return $this->setChapter($result,$direction,$version);
 				}
-			} else if ($result->type == 'book'){
-				if($this->diplayOption == '1') {
+				else
+				{
+					return $this->setChapter($result, $direction, $version);
+				}
+			}
+			elseif ($result->type == 'book')
+			{
+				if ($this->diplayOption == '1')
+				{
 					return "Whole book's! not allowed in tooltip mode, please select another.";
-				} else {
-					return $this->setBook($result,$direction,$version);
 				}
-			} 
+				else
+				{
+					return $this->setBook($result, $direction, $version);
+				}
+			}
 		}
 		// if no results retuned return the following error messages
-		if($this->diplayOption == '1') {
+		if ($this->diplayOption == '1')
+		{
 			return "No scripture was returned, please fix scripture reference!";
-		} else {
+		}
+		else
+		{
 			return '<span class="uk-text-danger">No scripture was returned, please fix scripture reference!</span>';
-		}		
+		}
 	}
-	
-	protected function setVerses($result,$direction,$version)
+
+	protected function setVerses($result, $direction, $version)
 	{
 		$output = '';
-		foreach($result->book as $in => &$book) {
-			if($this->diplayOption == 1) {
-				$output .= '<p class="'.$direction.'">';
-			} else if($this->diplayOption == 4 && $this->params->get('inlineOption') == 1) {
-				$output .=  '<span class="'.$direction.'"><span class="ltr uk-text-muted">'.$book->book_name.'</span>&#160;';
-			} else {
-				$output .= '<center><b>'.$book->book_name.'&#160;'.$book->chapter_nr.'</b></center><br/><p class="'.$direction.'">';
+		foreach ($result->book as $in => &$book)
+		{
+			if ($this->diplayOption == 1)
+			{
+				$output .= '<p class="' . $direction . '">';
 			}
-			
-			foreach($book->chapter as $as => &$chapter) {
-				if($this->diplayOption == 4 && $this->params->get('inlineOption') == 1) {
-					$output .= '&#160;<span class="ltr uk-text-muted">('.$book->chapter_nr.':'.$chapter->verse_nr.')</span>&#160;';
-				} else {
-					$output .= '&#160;&#160;<small class="ltr">'.$chapter->verse_nr.'</small>&#160;&#160;';
+			elseif ($this->diplayOption == 4 && $this->params->get('inlineOption') == 1)
+			{
+				$output .= '<span class="' . $direction . '"><span class="ltr uk-text-muted">' . $book->book_name . '</span>&#160;';
+			}
+			else
+			{
+				$output .= '<center><b>' . $book->book_name . '&#160;' . $book->chapter_nr . '</b></center><br/><p class="' . $direction . '">';
+			}
+
+			foreach ($book->chapter as $as => &$chapter)
+			{
+				if ($this->diplayOption == 4 && $this->params->get('inlineOption') == 1)
+				{
+					$output .= '&#160;<span class="ltr uk-text-muted">(' . $book->chapter_nr . ':' . $chapter->verse_nr . ')</span>&#160;';
+				}
+				else
+				{
+					$output .= '&#160;&#160;<small class="ltr">' . $chapter->verse_nr . '</small>&#160;&#160;';
 				}
 				$output .= $this->htmlEscape($chapter->verse);
-				
-				if($this->diplayOption == 4 && $this->params->get('inlineOption') == 1) {
-					$output .= '';
-				} else {
-					$output .= '<br />';
 
+				if ($this->diplayOption == 4 && $this->params->get('inlineOption') == 1)
+				{
+					$output .= '';
+				}
+				else
+				{
+					$output .= '<br />';
 				}
 			}
-			
-			if($this->diplayOption == 4 && $this->params->get('inlineOption') == 1) {
-				$output .= '</span> <small class="ltr uk-text-muted"> (Taken From '.$version.')</small>&#160;';
-			} else {
-				$output .= '<small class="uk-text-right"> (Taken From '.$version.')</small></p>';
+
+			if ($this->diplayOption == 4 && $this->params->get('inlineOption') == 1)
+			{
+				$output .= '</span> <small class="ltr uk-text-muted"> (Taken From ' . $version . ')</small>&#160;';
+			}
+			else
+			{
+				$output .= '<small class="uk-text-right"> (Taken From ' . $version . ')</small></p>';
 			}
 		}
-		return $output;		
+		return $output;
 	}
-	
-	protected function setChapter($result,$direction,$version)
+
+	protected function setChapter($result, $direction, $version)
 	{
-		$output = '<center><b>'.$result->book_name.'&#160;'.$result->chapter_nr.'</b></center><br/><p class="'.$direction.'">';
-		foreach($result->chapter as $in => &$chapter) {
-			$output .= '&#160;&#160;<small class="ltr">'.$chapter->verse_nr.'</small>&#160;&#160;';
+		$output = '<center><b>' . $result->book_name . '&#160;' . $result->chapter_nr . '</b></center><br/><p class="' . $direction . '">';
+		foreach ($result->chapter as $in => &$chapter)
+		{
+			$output .= '&#160;&#160;<small class="ltr">' . $chapter->verse_nr . '</small>&#160;&#160;';
 			$output .= $this->htmlEscape($chapter->verse);
 			$output .= '<br/>';
 		}
-		$output .= '<small class="uk-text-right"> (Taken From '.$version.')</small></p>';
+		$output .= '<small class="uk-text-right"> (Taken From ' . $version . ')</small></p>';
 		return $output;
 	}
-	
-	protected function setBook($result,$direction,$version)
+
+	protected function setBook($result, $direction, $version)
 	{
 		$output = '';
-		foreach($result->book as $in => &$book) {
-			$output .= '<center><b>'.$result->book_name.'&#160;'.$result->chapter_nr.'</b></center><br/><p class="'.$direction.'">';
-			foreach($book->chapter as $chapter) {
-				$output .= '&#160;&#160;<small class="ltr">'.$chapter->verse_nr.'</small>&#160;&#160;';
+		foreach ($result->book as $in => &$book)
+		{
+			$output .= '<center><b>' . $result->book_name . '&#160;' . $result->chapter_nr . '</b></center><br/><p class="' . $direction . '">';
+			foreach ($book->chapter as $chapter)
+			{
+				$output .= '&#160;&#160;<small class="ltr">' . $chapter->verse_nr . '</small>&#160;&#160;';
 				$output .= $this->htmlEscape($chapter->verse);
 				$output .= '<br/>';
 			}
-			$output .= '<small class="uk-text-right"> (Taken From '.$version.')</small></p>';
+			$output .= '<small class="uk-text-right"> (Taken From ' . $version . ')</small></p>';
 		}
 		return $output;
 	}
-	
+
 	protected function getScriptureCurl($url)
 	{
 		// startup curl
-		$curl 		= curl_init();
+		$curl = curl_init();
 		// set curl options
 		curl_setopt($curl, CURLOPT_URL, $url);
 		curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0');
@@ -803,4 +964,5 @@ class PlgContentLoadscripture extends JPlugin
 		// retun object
 		return $results;
 	}
+
 }

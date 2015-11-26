@@ -12,11 +12,6 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-// Added for Joomla 3.0
-if(!defined('DS')){
-	define('DS',DIRECTORY_SEPARATOR);
-};
-
 /**
  * Script file of Code Box component
  */
@@ -69,7 +64,7 @@ class plgcontentloadscriptureInstallerScript
 		
 		$app = JFactory::getApplication();
 		
-		if (!file_exists(JPATH_ROOT.DS.'components'.DS.'com_getbible'.DS.'helpers'.DS.'script_checker.php')) {
+		if (!file_exists(JPATH_ROOT.'/components/com_getbible/helpers/script_checker.php')) {
 			$this->network = true;
 			$app->enqueueMessage('Please note that you will need to setup your network url in the plugin settings, or install the <a href="https://getbible.net/downloads" target="_blank">GetBible component</a> before continuing.', 'Message');
 		}

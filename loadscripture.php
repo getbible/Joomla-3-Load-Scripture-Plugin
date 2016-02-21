@@ -427,7 +427,7 @@ class PlgContentLoadscripture extends JPlugin
 			{
 				if ($this->com_params->get('jsonQueryOptions') == 1)
 				{
-					$this->action = 'index.php?option=com_getbible&view=json' . $key;
+					$this->action = JURI::base().'index.php?option=com_getbible&view=json' . $key;
 				}
 				else
 				{
@@ -500,7 +500,7 @@ class PlgContentLoadscripture extends JPlugin
 			{
 				if ($this->com_params->get('jsonQueryOptions') == 1)
 				{
-					$this->action = 'index.php?option=com_getbible&view=json';
+					$this->action = JURI::base().'index.php?option=com_getbible&view=json';
 				}
 				elseif ($this->com_params->get('jsonQueryOptions') == 2)
 				{

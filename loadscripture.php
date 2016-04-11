@@ -340,21 +340,21 @@ class PlgContentLoadscripture extends JPlugin
 		{
 			if ($this->params->get('method') == 1)
 			{
-				$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/css/uikit.min.css');
+				$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/uikit/css/uikit.min.css');
 			}
 			else
 			{
 				if ($this->com_params->get('jsonQueryOptions') == 1)
 				{
-					$this->document->addStyleSheet(JURI::base(true) . '/media/com_getbible/css/uikit.min.css');
+					$this->document->addStyleSheet(JURI::base(true) . '/media/com_getbible/uikit/css/uikit.min.css');
 				}
 				elseif ($this->com_params->get('jsonQueryOptions') == 2)
 				{
-					$this->document->addScript('https://getbible.net/media/com_getbible/css/uikit.min.css');
+					$this->document->addScript('https://getbible.net/media/com_getbible/uikit/css/uikit.min.css');
 				}
 				else
 				{
-					$this->document->addScript('http://getbible.net/media/com_getbible/css/uikit.min.css');
+					$this->document->addScript('http://getbible.net/media/com_getbible/uikit/css/uikit.min.css');
 				}
 			}
 		}
@@ -383,21 +383,21 @@ class PlgContentLoadscripture extends JPlugin
 		{
 			if ($this->params->get('method') == 1)
 			{
-				$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/js/uikit.min.js');
+				$this->document->addScript($this->params->get('network_url') . '/media/com_getbible/uikit/js/uikit.min.js');
 			}
 			else
 			{
 				if ($this->com_params->get('jsonQueryOptions') == 1)
 				{
-					$this->document->addScript(JURI::base(true) . '/media/com_getbible/js/uikit.min.js');
+					$this->document->addScript(JURI::base(true) . '/media/com_getbible/uikit/js/uikit.min.js');
 				}
 				elseif ($this->com_params->get('jsonQueryOptions') == 2)
 				{
-					$this->document->addScript('https://getbible.net/media/com_getbible/js/uikit.min.js');
+					$this->document->addScript('https://getbible.net/media/com_getbible/uikit/js/uikit.min.js');
 				}
 				else
 				{
-					$this->document->addScript('http://getbible.net/media/com_getbible/js/uikit.min.js');
+					$this->document->addScript('http://getbible.net/media/com_getbible/uikit/js/uikit.min.js');
 				}
 			}
 		}
